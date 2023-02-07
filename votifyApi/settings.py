@@ -24,7 +24,7 @@ print("Secret key ", SECRET_KEY)
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -102,6 +102,7 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
+ALLOWED_HOSTS = ['localhost','Sodyam.pythonanywhere.com']
 
 #Django Rest Framework strategy
 
@@ -243,6 +244,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
 AUTH_USER_MODEL = 'authentication.User'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -266,7 +269,28 @@ NAME = "VOTIFY APP"
 #Add docker configuration 
 
 
-DEBUG = int(os.getenv("DEBUG", default=1))
+DEBUG = int(os.getenv("DEBUG", default=0))
+
+
+'''
+{
+  "username": "MARIUS",
+  "email": "yaomariussodokin@gmail.com",
+  "first_name": "Yao Marius",
+  "last_name": "SODOKIN",
+  "address": "Abomey Calavi",
+  "phone": "+22990500075",
+  "password": "Sody@m/9050",
+  "re_password": "Sody@m/9050"
+}
+
+{
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NjIyMzY0NiwianRpIjoiNzZjZmU3OGVhOTg5NDU0ODllZmExMWNhNmYzOWEwMjQiLCJ1c2VyX2lkIjoieWFvbWFyaXVzc29kb2tpbkBnbWFpbC5jb20ifQ.SSyUhLBCdzRB8XjGpHkc8wQfnfZCTZIMQ7YA3aU2SbQ",
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc1Nzk1MjQ2LCJqdGkiOiI1MWYwODIyMjdmYTU0MmZmYWFjOGIyMDAxYmQ0NDA5NCIsInVzZXJfaWQiOiJ5YW9tYXJpdXNzb2Rva2luQGdtYWlsLmNvbSJ9.7taA3SvIGc40q65E9hqAcTByoooef4vnOn69UlMTJZU"
+}
+
+
+'''
 
 
 
