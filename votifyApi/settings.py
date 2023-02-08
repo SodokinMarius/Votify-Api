@@ -24,9 +24,7 @@ print("Secret key ", SECRET_KEY)
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
-ALLOWED_HOSTS = []
+#DEBUG = True
 
 
 # Application definition
@@ -43,7 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'dj_rest_auth',
-    
+    'votifyApp',
     'drf_yasg',
     'safedelete',
     
@@ -102,7 +100,7 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
-ALLOWED_HOSTS = ['localhost','Sodyam.pythonanywhere.com']
+ALLOWED_HOSTS = ['localhost','Sodyam.pythonanywhere.com','127.0.0.1']
 
 #Django Rest Framework strategy
 
@@ -122,7 +120,7 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'USER_ID_FIELD': 'email',
     'AUTH_HEADER_TYPES': 'Bearer',
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=24*60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=5),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -162,6 +160,16 @@ AUTHENTICATION_BACKENDS = [
    
 ]
 
+"""
+
+'SERIALIZERS': {
+    'user_create' : 'authentication.serializers.UserCreateSerializer',
+    'user' : 'authentication.serializers.UserCreateSerializer',
+    'user_delete' : 'djoser.serializers.UserDeleteSerializer',
+
+    }
+"""
+
 #Djoser settings
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '/password/reset/confirm/{uid}/{token}',
@@ -172,7 +180,7 @@ DJOSER = {
     'PASSWORD_CHANGED_EMAIL_CONFIRMATION':True,
     'USERNAME_CHANGED_EMAIL_CONFIRMATION' : True,
     
-    #'USER_CREATE_PASSWORD_RETYPE' : True,
+    'USER_CREATE_PASSWORD_RETYPE' : True,
     'SET_USERNAME_RETYPE': True,
     
     
@@ -184,8 +192,9 @@ DJOSER = {
 
     'SERIALIZERS': {
         'user_create' : 'authentication.serializers.UserCreateSerializer',
-        'user' : 'authentication.serializers.UserCreateSerializer',
-        'user_delete' : 'djoser.serializers.UserDeleteSerializer',
+        'user' : 'djoser.serializers.UserSerializer',
+        'current_user' : 'djoser.serializers.UserSerializer',
+        'user_delete' : 'djoser.serializers.UserSerializer',
 
         },
     'EMAIL': EMAIL,
@@ -193,6 +202,11 @@ DJOSER = {
     'LOGIN_FIELD' : 'email'
 }
 
+
+
+# CORS HEADERS
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -261,7 +275,11 @@ EMAIL_HOST =  os.getenv('EMAIL_HOST')
 EMAIL_USE_TLS =os.getenv('EMAIL_USE_TLS')
 EMAIL_PORT = os.getenv('EMAIL_PORT')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+print("Email :",EMAIL_HOST_USER)
+
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+print("Password :",EMAIL_HOST_PASSWORD)
+
 
 NAME = "VOTIFY APP"
 
@@ -269,7 +287,7 @@ NAME = "VOTIFY APP"
 #Add docker configuration 
 
 
-DEBUG = int(os.getenv("DEBUG", default=0))
+DEBUG = int(os.getenv("DEBUG", default=1))
 
 
 '''
@@ -285,8 +303,8 @@ DEBUG = int(os.getenv("DEBUG", default=0))
 }
 
 {
-  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NjIyMzY0NiwianRpIjoiNzZjZmU3OGVhOTg5NDU0ODllZmExMWNhNmYzOWEwMjQiLCJ1c2VyX2lkIjoieWFvbWFyaXVzc29kb2tpbkBnbWFpbC5jb20ifQ.SSyUhLBCdzRB8XjGpHkc8wQfnfZCTZIMQ7YA3aU2SbQ",
-  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc1Nzk1MjQ2LCJqdGkiOiI1MWYwODIyMjdmYTU0MmZmYWFjOGIyMDAxYmQ0NDA5NCIsInVzZXJfaWQiOiJ5YW9tYXJpdXNzb2Rva2luQGdtYWlsLmNvbSJ9.7taA3SvIGc40q65E9hqAcTByoooef4vnOn69UlMTJZU"
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NjMwMTI5MywianRpIjoiY2U5Y2FjNDExODczNGVmNjg0MzQ5OGEwZGNhZjZlMmEiLCJ1c2VyX2lkIjoieWFvbWFyaXVzc29kb2tpbkBnbWFpbC5jb20ifQ.arHK7sMQss8FchHD7oDakQqisH5NZ9r0XK6AerJ9qAU",
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc1OTU1NjkzLCJqdGkiOiIxOGM3MWY1NzE3OTQ0MWJjYTdhNDZmYzhmNTU5M2I0OSIsInVzZXJfaWQiOiJ5YW9tYXJpdXNzb2Rva2luQGdtYWlsLmNvbSJ9.b3GWEE9wNzV3RnUpYmgEDnEtHAJhsCLv6zAhG6fklV8"
 }
 
 

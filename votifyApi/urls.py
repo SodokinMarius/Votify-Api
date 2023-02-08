@@ -1,6 +1,7 @@
 
 from django.contrib import admin
 from django.urls import path,include
+from votifyApp.viewsets import *
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -37,6 +38,11 @@ urlpatterns = [
             #                   AUTHENTICATION ROUTER             #
             #-----------------------------------------------------#
             path('auth/', include('authentication.urls')),
-           
+            
+            #-----------------------------------------------------#
+            #                   VOTIFY ROUTER                     #
+            #-----------------------------------------------------#
+            path('api/', include('votifyApp.urls')),     
+      
             
 ]

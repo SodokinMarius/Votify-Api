@@ -16,6 +16,7 @@ from .serializers import  UserCreateSerializer
 
 
 
+
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
     
@@ -42,16 +43,15 @@ class LogoutAPIView(generics.GenericAPIView):
 
         return Response(data=data,status=status.HTTP_204_NO_CONTENT)
 
+from rest_framework.generics import UpdateAPIView
+from rest_framework.response import Response
 
-class UserViewSet(viewsets.ModelViewSet):
+
+class PromoteToVoteAdminView(UpdateAPIView):
     queryset = User.objects.all()
-    serializer_class =  UserCreateSerializer
 
-    @action(detail=True, methods=['get'])
-    def subscribe(self, request, pk=None):
-        user = get_object_or_404(User, pk=pk)
-        subscriber = request.user
-        user.subscribers.add(subscriber)
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        user.is_vote_admin = True
         user.save()
-        return Response({'status': 'subscribed'})  
-    
+        return Response(data={'status': 'User promoted to vote admin'}, status=status.HTTP_202_ACCEPTED)
