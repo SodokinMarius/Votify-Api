@@ -24,3 +24,5 @@ pymysql==1.0.2
 
 Pillow==9.3
 
+pandas==1.5.3
+

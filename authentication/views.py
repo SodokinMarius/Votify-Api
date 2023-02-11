@@ -49,6 +49,7 @@ from rest_framework.response import Response
 
 class PromoteToVoteAdminView(UpdateAPIView):
     queryset = User.objects.all()
+    serializer_class = UserCreateSerializer
 
     def put(self, request, *args, **kwargs):
         user = request.user

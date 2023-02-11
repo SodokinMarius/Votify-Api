@@ -38,13 +38,13 @@ class Election(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(verbose_name="description",max_length=500)
     date_start = models.DateTimeField(null=False, default=timezone.now)
-    date_end = models.DateField(null=False, auto_now=True) 
+    date_end = models.DateTimeField(null=False, auto_now=False) 
     election_type = models.CharField(max_length=200,null=False,choices=TypeElectionEnum.items(), default=TypeElectionEnum.PUBLIC.value)
     turn_number = models.IntegerField(default=1)
-    progress_status = models.CharField(choices=ProgressChoiceEnum.items(),max_length=200,default="pending")
+    progress_status = models.CharField(choices=ProgressChoiceEnum.items(),max_length=200,default=ProgressChoiceEnum.PENDING.value)
     creator = models.ForeignKey(to=settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True)  
     authorized_voters_file = models.FileField(null=True) 
-    authorized_voters_add = models.ManyToManyField(to=Voter,default='all',related_name='voters')
+    authorized_voters_add = models.ManyToManyField(to=Voter,related_name='voters')
     is_cancelled = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -57,7 +57,7 @@ class Election(models.Model):
         message = ""
       
         """
-        Si le vote est crée aujoue=rd'hui et sa date de demarrage est dans le futur, alors c'est mis en pending
+        Si le vote est crée aujourd'hui et sa date de demarrage est dans le futur, alors c'est mis en pending
         """
         if current_time < self.date_start and self.created_at == current_time:
             self.progress_status = ProgressChoiceEnum.PENDING.value
@@ -91,7 +91,7 @@ class Vote(models.Model):
     def __str__(self):
         return f' Voter :{self.voter} | Election : {self.election} | choosed : {self.choosed_option}'
     
-    
+  
 class Notification(models.Model):
     recipient = models.ForeignKey(to=settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True)
     notif_type =  models.CharField(max_length=500,choices=NotificationTypeEnum.items())

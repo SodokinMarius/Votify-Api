@@ -50,7 +50,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     address = models.CharField(max_length=200)
     phone = models.CharField(max_length=12)
     is_admin = models.BooleanField(default=False)
-    is_vote_admin = models.BooleanField(default=False)
+    is_vote_admin = models.BooleanField(default=False,null=False)
     is_verified=models.BooleanField(default=False)   
     is_active=models.BooleanField(default=True)
     is_staff=models.BooleanField(default=False)
