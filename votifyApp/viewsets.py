@@ -469,7 +469,6 @@ class ElectionViewSet(viewsets.ModelViewSet):
         return Response({'message': 'Vote registered successfully', 'vote_id': vote.id}, status=status.HTTP_201_CREATED)
 
         
-    
 
     @action(detail=True, methods=['get'], url_path='stats', url_name='stats')
     def election_stats(self, request, pk=None):
