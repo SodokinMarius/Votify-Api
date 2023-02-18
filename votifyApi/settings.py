@@ -252,6 +252,8 @@ USE_I18N = True
 
 USE_TZ = True
 
+from datetime import datetime 
+print(datetime.now())
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -288,6 +290,7 @@ NAME = "VOTIFY APP"
 
 
 DEBUG = int(os.getenv("DEBUG", default=1))
+CURRENT_USER_ID = None
 
 
 '''
@@ -303,8 +306,8 @@ DEBUG = int(os.getenv("DEBUG", default=1))
 }
 
 {
-  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NjMwMTI5MywianRpIjoiY2U5Y2FjNDExODczNGVmNjg0MzQ5OGEwZGNhZjZlMmEiLCJ1c2VyX2lkIjoieWFvbWFyaXVzc29kb2tpbkBnbWFpbC5jb20ifQ.arHK7sMQss8FchHD7oDakQqisH5NZ9r0XK6AerJ9qAU",
-  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc1OTU1NjkzLCJqdGkiOiIxOGM3MWY1NzE3OTQ0MWJjYTdhNDZmYzhmNTU5M2I0OSIsInVzZXJfaWQiOiJ5YW9tYXJpdXNzb2Rva2luQGdtYWlsLmNvbSJ9.b3GWEE9wNzV3RnUpYmgEDnEtHAJhsCLv6zAhG6fklV8"
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NzA3MDc3NywianRpIjoiYzI1YWE0OGNkNzU2NGU3OTlhZjE5OWZlODZhOGRhMzMiLCJ1c2VyX2lkIjoieWFvbWFyaXVzc29kb2tpbkBnbWFpbC5jb20ifQ.YmEn-MJlqdyxrBYHWuHAZdIHdDiRE2UUmZY7_2sssrc",
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc2NzI1MTc3LCJqdGkiOiJmYTAyYWVjNmU0ZWY0NzQ4ODcxMGI4ZTY5MzRmNDQxMCIsInVzZXJfaWQiOiJ5YW9tYXJpdXNzb2Rva2luQGdtYWlsLmNvbSJ9.tc9V-0rPhy8cmLVheYqSPj6dbrIx9hcWY_67jOj7D_I"
 }
 
 

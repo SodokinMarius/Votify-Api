@@ -3,8 +3,6 @@ from uuid import uuid4
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
 
-
-
 def generate_uuid():
     return uuid4().hex
 
@@ -26,4 +24,3 @@ def determine_remaining_duration(start_date, end_date):
     hours, remainder = divmod(remainder, 3600)
     minutes, seconds = divmod(remainder, 60)
     return days, hours, minutes, seconds
-    

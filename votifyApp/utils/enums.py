@@ -1,5 +1,7 @@
 from enum import Enum
 
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
 
 class BaseEnum(Enum):
     @classmethod
@@ -38,6 +40,12 @@ class NotificationTypeEnum(BaseEnum):
     RAPPEL = "Rapplel d'un vote en cours"
     ELLECTION_RESUSLT = "Résultat d'une élection"
     ADMIN_REQUEST = "Demande de droits d'Admin de vote"
+
+
+
+    
+       
+    
    
 
 

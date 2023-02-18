@@ -50,6 +50,7 @@ from rest_framework.response import Response
 class PromoteToVoteAdminView(UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
+    lookup_field = 'pk'
 
     def put(self, request, *args, **kwargs):
         user = request.user

@@ -29,6 +29,6 @@ class isVoteAdmin(permissions.BasePermission):
 
         # Instance must have an attribute named `owner`.
         if request.user:
-            return obj.user.is_vote_admin
+            return obj.creator.is_vote_admin
         else :
             return False

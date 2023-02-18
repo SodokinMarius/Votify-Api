@@ -9,12 +9,8 @@ from django.conf import settings
 
 from datetime import timedelta
 
-from .utils.utils import   determine_end_date_knowing_duration
 
 from django.utils import timezone
-
-#from notification.models import Notification,Topic
-
 
 from .utils.enums import (
 ProgressChoiceEnum, 
@@ -31,9 +27,9 @@ class Voter(models.Model):
     voter_type = models.CharField(max_length=100,choices=TypeVoterEnum.items(),default=TypeVoterEnum.CITIZEN.value)
     
     def __str__(self):
-        return f'{self.user} de type : {self.type}'
+        return f'{self.user} de type : {self.voter_type}'
 
-    
+
 class Election(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(verbose_name="description",max_length=500)
@@ -42,15 +38,19 @@ class Election(models.Model):
     election_type = models.CharField(max_length=200,null=False,choices=TypeElectionEnum.items(), default=TypeElectionEnum.PUBLIC.value)
     turn_number = models.IntegerField(default=1)
     progress_status = models.CharField(choices=ProgressChoiceEnum.items(),max_length=200,default=ProgressChoiceEnum.PENDING.value)
-    creator = models.ForeignKey(to=settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True)  
-    authorized_voters_file = models.FileField(null=True) 
-    authorized_voters_add = models.ManyToManyField(to=Voter,related_name='voters')
+    creator = models.ForeignKey(to=settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True) 
+    authorized_voters = models.ManyToManyField(Voter) 
+    authorized_voters_file = models.FileField(null=True)  
+    voters_email = models.JSONField(verbose_name="Mail des Voters",null=True)
     is_cancelled = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self) :
         return self.title
-  
+    
+    def getUnloggedVoters(self):
+        return self.anonymous_voters
+    
     def save(self, *args, **kwargs):
         current_time = timezone.now()
         notif_type = ""
@@ -71,16 +71,17 @@ class Election(models.Model):
                
         super(Election, self).save(*args, **kwargs)
 
-
 class Option(models.Model):
     code = models.CharField(max_length=100,null=False,unique=True)
     full_name = models.CharField(max_length=500)
     image = models.ImageField(upload_to="options_images")
-    created_by = models.ForeignKey(to=settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True)
-    related_election = models.ForeignKey(to=Election,on_delete=models.SET_NULL,null=True)
+    vote_counter = models.IntegerField(null=True)
+    creator = models.ForeignKey(to=settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True)
+    related_election = models.ForeignKey(to=Election,on_delete=models.CASCADE,null=False,related_name="options")
 
     def __str__(self):
         return  self.code
+       
 
 class Vote(models.Model):
     voter = models.ForeignKey(to=Voter,on_delete=models.SET_NULL,null=True)
@@ -93,7 +94,6 @@ class Vote(models.Model):
     
   
 class Notification(models.Model):
-    recipient = models.ForeignKey(to=settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True)
     notif_type =  models.CharField(max_length=500,choices=NotificationTypeEnum.items())
     notif_content = models.TextField(max_length=1000)
     notif_read_status = models.BooleanField(default=False)
