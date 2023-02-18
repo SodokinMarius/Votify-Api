@@ -24,7 +24,7 @@ print("Secret key ", SECRET_KEY)
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = True
+DEBUG = False
 
 
 # Application definition
@@ -100,7 +100,7 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
-ALLOWED_HOSTS = ['localhost','Sodyam.pythonanywhere.com','127.0.0.1']
+ALLOWED_HOSTS = ['localhost','votifyapp.pythonanywhere.com','127.0.0.1']
 
 #Django Rest Framework strategy
 
@@ -258,7 +258,9 @@ print(datetime.now())
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+'''Create the static root : python3 manage.py collectstatic'''
+STATIC_URL = '/static/'  
+
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
@@ -268,7 +270,7 @@ AUTH_USER_MODEL = 'authentication.User'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-DJANGO_ALLOWED_HOSTS = ["localhost","127.0.0.1"]
+DJANGO_ALLOWED_HOSTS = ['localhost','votifyapp.pythonanywhere.com','127.0.0.1']
 
 
 #Email sending Configuration
@@ -289,29 +291,12 @@ NAME = "VOTIFY APP"
 #Add docker configuration 
 
 
-DEBUG = int(os.getenv("DEBUG", default=1))
+#DEBUG = int(os.getenv("DEBUG", default=0))
 CURRENT_USER_ID = None
 
-
-'''
-{
-  "username": "MARIUS",
-  "email": "yaomariussodokin@gmail.com",
-  "first_name": "Yao Marius",
-  "last_name": "SODOKIN",
-  "address": "Abomey Calavi",
-  "phone": "+22990500075",
-  "password": "Sody@m/9050",
-  "re_password": "Sody@m/9050"
-}
-
-{
-  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NzA3MDc3NywianRpIjoiYzI1YWE0OGNkNzU2NGU3OTlhZjE5OWZlODZhOGRhMzMiLCJ1c2VyX2lkIjoieWFvbWFyaXVzc29kb2tpbkBnbWFpbC5jb20ifQ.YmEn-MJlqdyxrBYHWuHAZdIHdDiRE2UUmZY7_2sssrc",
-  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc2NzI1MTc3LCJqdGkiOiJmYTAyYWVjNmU0ZWY0NzQ4ODcxMGI4ZTY5MzRmNDQxMCIsInVzZXJfaWQiOiJ5YW9tYXJpdXNzb2Rva2luQGdtYWlsLmNvbSJ9.tc9V-0rPhy8cmLVheYqSPj6dbrIx9hcWY_67jOj7D_I"
-}
+print("DEBUG ------------>",DEBUG)
 
 
-'''
 
 
 
