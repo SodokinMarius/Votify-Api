@@ -1,5 +1,4 @@
-venv/
-./manage.py
+venv
 
 */.sqlite3
 .env
