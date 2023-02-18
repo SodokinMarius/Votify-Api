@@ -1,10 +1,5 @@
 from django.db import models
 
-
-from django.utils.functional import cached_property
-# Module for safedelete
-from safedelete.models import SafeDeleteModel
-
 from django.conf import settings
 
 from datetime import timedelta

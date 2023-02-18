@@ -42,9 +42,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'dj_rest_auth',
     'votifyApp',
-    'drf_yasg',
-    'safedelete',
-    
+    'drf_yasg', 
     'allauth',
     'allauth.account', # for basic authentication
     'allauth.socialaccount',
@@ -159,16 +157,6 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
    
 ]
-
-"""
-
-'SERIALIZERS': {
-    'user_create' : 'authentication.serializers.UserCreateSerializer',
-    'user' : 'authentication.serializers.UserCreateSerializer',
-    'user_delete' : 'djoser.serializers.UserDeleteSerializer',
-
-    }
-"""
 
 #Djoser settings
 DJOSER = {
