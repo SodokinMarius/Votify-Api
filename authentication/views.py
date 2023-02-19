@@ -4,6 +4,11 @@ from .models import User
 
 from .serializers import LogoutSerializer
 
+#------------ Complete ------------
+from django.http import HttpResponse
+from djoser import utils
+#-------- End ----------------------
+
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 
@@ -13,8 +18,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from rest_framework import viewsets
 from .serializers import  UserCreateSerializer
-
-
 
 
 class GoogleLogin(SocialLoginView):
@@ -57,3 +60,15 @@ class PromoteToVoteAdminView(UpdateAPIView):
         user.is_vote_admin = True
         user.save()
         return Response(data={'status': 'User promoted to vote admin'}, status=status.HTTP_202_ACCEPTED)
+
+
+def activate(request, uid, token):
+    try:
+        user = utils.decode_uid(uid)
+        if utils.activation_token.check_token(user, token):
+            utils.activate_user(user)
+            return HttpResponse('Compte activé avec succès')
+        else:
+            return HttpResponse('Lien d\'activation invalide')
+    except Exception as ex:
+        return HttpResponse('Erreur : ' + str(ex))

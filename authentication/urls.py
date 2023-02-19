@@ -16,7 +16,7 @@ urlpatterns = [
     path('promote/', PromoteToVoteAdminView.as_view(), name='promote_to_vote_admin'),
 
     path('logout/', LogoutAPIView.as_view(), name="logout"),
-    
+    path('activate/<uid>/<token>/', activate, name='activate'),    
 
     
     #--------------------------------#
