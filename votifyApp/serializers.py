@@ -33,23 +33,7 @@ class ElectionSerializer(serializers.ModelSerializer):
         read_only_fields = ['id','created_at']
         depth = 1
         
-    #Personalizeing method for neted serializers
-    """def create(self,validated_data):
-        authorized_voters_data = validated_data.pop('authorized_voters_add')
-
-        try :
-            options_data = validated_data.pop('options')
-
-        except KeyError:
-            options_data = [{"IFRI","Marius"},{"EPAC",'SOD'},]
-
-        election = Election.objects.create(**validated_data)
-        for voter_data in authorized_voters_data:
-            user = User.objects.get(id=voter_data['id'])
-            election.authorized_voters.add(user)
-        Option.objects.create(created_by=request.user,**options_data)
-        return election"""
-        
+    
     def create(self, validated_data):
         authorized_voters_data = validated_data.pop('authorized_voters_add')
 
@@ -73,7 +57,14 @@ class VoteSerializer(serializers.ModelSerializer):
         read_only_fields = ['id','created_at']
         depth = 1
 
-
+class VoteAdminRequestSerializer(serializers.ModelSerializer):
+     class Meta:
+        model = VoteAdminRequest
+        fields = ['id','creator', 'subject','message','is_validated','created_at']
+        read_only_fields = ['id','creator','created_at','is_validated']
+        depth = 1
+        
+        
 class NotificationSerializer(serializers.ModelSerializer):
      class Meta:
         model = Notification

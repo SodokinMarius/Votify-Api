@@ -24,7 +24,7 @@ print("Secret key ", SECRET_KEY)
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 # Application definition
@@ -162,7 +162,7 @@ AUTHENTICATION_BACKENDS = [
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '/password/reset/confirm/{uid}/{token}',
     'USERNAME_RESET_CONFIRM_URL': '/username/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': '/activate/{uid}/{token}',
+    'ACTIVATION_URL': 'activation/<str:email>/<str:code>',
     'SEND_ACTIVATION_EMAIL': True,
     'SEND_CONFIRMATION_EMAIL' :True,
     'PASSWORD_CHANGED_EMAIL_CONFIRMATION':True,
@@ -190,7 +190,7 @@ DJOSER = {
     'LOGIN_FIELD' : 'email'
 }
 
-
+APPEND_SLASH = False
 
 # CORS HEADERS
 CORS_ORIGIN_ALLOW_ALL = True
@@ -293,4 +293,9 @@ print("DEBUG ------------>",DEBUG)
 
 
 
-
+"""
+    {
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NzUxMzE2MCwianRpIjoiZGYzNDAzMDVjYTYxNDJlZjgwMGZlZGJmMWJlYjc1MjQiLCJ1c2VyX2lkIjoic3lhb21hcml1c0BnbWFpbC5jb20ifQ.tKgvbQgYfAbNToCtwGYmre-ORRNhiNCT3UiDl_7O_JQ",
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc3MTY3NTYwLCJqdGkiOiJkZjFkMjM1ZDhhMTY0NzY0YmVkYTFiMjkwOTkzZWY1NSIsInVzZXJfaWQiOiJzeWFvbWFyaXVzQGdtYWlsLmNvbSJ9.PYNNKSrP0iH3hA9mBjp-Qf2fUHbwjc5_UgtvY4PeNQM"
+}
+    """
