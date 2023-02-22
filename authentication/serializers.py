@@ -1,33 +1,23 @@
-from djoser.serializers import UserCreateSerializer as DjoserUserSerializer,UserCreatePasswordRetypeSerializer
 
+from djoser.serializers import UserCreateSerializer as DjoserUserSerializer
 from django.contrib.auth import get_user_model
-
-from .models import User
-
-from rest_framework import serializers
-from djoser import serializers as djoser_serializers
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from rest_framework import serializers
 
-from  .config import SITE_NAME
+from votifyApp.utils import send_email 
+from votifyApp.utils import random_generate
 
-#User = get_user_model()
+
+User = get_user_model()
+
 class UserCreateSerializer(DjoserUserSerializer):
-    
+
     class Meta(DjoserUserSerializer.Meta):
         model = User
         fields = ['username','email','first_name','last_name','address','phone','password']        
         extra_kwargs = {'password': {'write_only': True}}
         depth = 1
-        
-'''class UserCreateSerializer(UserCreatePasswordRetypeSerializer):
-    
-    class Meta(UserCreatePasswordRetypeSerializer.Meta):
-        model = User
-        fields = ['username','email','first_name','last_name','address','phone','password']        
-        extra_kwargs = {'password': {'write_only': True}}
-        depth = 1
 
-    
     def validate(self, attrs):
         self.fields.pop("re_password", None)
         re_password = attrs.pop("re_password")
@@ -35,16 +25,8 @@ class UserCreateSerializer(DjoserUserSerializer):
         if attrs["password"] == re_password:
             return attrs
         else:
-            self.fail("password_mismatch")'''
+            self.fail("password_mismatch")
 
-        
-
-  
-class CustomUserSerializer(djoser_serializers.UserSerializer):
-    def send_confirmation(self):
-       
-        subject = f'Activation de compte sur {SITE_NAME}'
-       
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
