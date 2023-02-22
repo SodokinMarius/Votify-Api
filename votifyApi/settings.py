@@ -1,6 +1,7 @@
 
 from datetime import timedelta
 from pathlib import Path
+import django
 
 # base configuration of environnement variable loading
 import os
@@ -10,7 +11,7 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-#The following config is important for sql database 
+#The following config is important for sql database
 import pymysql
 
 pymysql.install_as_MySQLdb()
@@ -19,7 +20,7 @@ pymysql.install_as_MySQLdb()
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = "django-insecure-0pp!9_m3d!x^il8kne274sz6*cijk6hq3&d$vxm690pc(zl&0^"
 print("Secret key ", SECRET_KEY)
 
 
@@ -42,12 +43,12 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'dj_rest_auth',
     'votifyApp',
-    'drf_yasg', 
+    'drf_yasg',
     'allauth',
     'allauth.account', # for basic authentication
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.facebook',    
+    'allauth.socialaccount.providers.facebook',
 ]
 
 MIDDLEWARE = [
@@ -84,17 +85,24 @@ WSGI_APPLICATION = 'votifyApi.wsgi.application'
 
 #Configuration des Providers social
 
+GOOGLE_KEY='704829398857-2bl8dun6qvavhd9lgkko3157o9cot0fv.apps.googleusercontent.com'
+GOOGLE_SECRET='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'
+
+
+FACEBOOK_KEY='2177463709111231'
+FACEBOOK_SECRET='d57e1945c9f4fadef7ce1be5cd025eed'
+
 SOCIALACCOUNT_PROVIDERS = {
        'google': {
         'APP': 'google',
-        'KEY': os.getenv('GOOGLE_KEY'),
-        'SECRET': os.getenv('GOOGLE_SECRET'),
+        'KEY': GOOGLE_KEY,
+        'SECRET': GOOGLE_SECRET,
     },
 
     'facebook': {
         'APP': 'facebook',
-        'KEY': os.getenv('FACEBOOK_KEY'),
-        'SECRET': os.getenv('FACEBOOK_SECRET'),
+        'KEY': FACEBOOK_KEY,
+        'SECRET': FACEBOOK_SECRET,
     },
 }
 
@@ -104,8 +112,8 @@ ALLOWED_HOSTS = ['localhost','votifyapp.pythonanywhere.com','127.0.0.1']
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication', 
-        'rest_framework_simplejwt.authentication.JWTAuthentication',       
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
      'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -128,7 +136,7 @@ SIMPLE_JWT = {
 }
 
 
-#Swagger setting configuration 
+#Swagger setting configuration
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
     'SECURITY_DEFINITIONS': {
@@ -140,22 +148,22 @@ SWAGGER_SETTINGS = {
     }
 }
 
-#Djoser Email config 
+#Djoser Email config
 EMAIL = {
-    
+
     'FROM_EMAIL': 'votify.com',
-    
+
 }
 
 #for allauth
 AUTHENTICATION_BACKENDS = [
-  
+
     # Needed to login by username in Django admin, regardless of `allauth`
     'django.contrib.auth.backends.ModelBackend',
 
     # `allauth` specific authentication methods, such as login by e-mail
     'allauth.account.auth_backends.AuthenticationBackend',
-   
+
 ]
 
 #Djoser settings
@@ -167,14 +175,14 @@ DJOSER = {
     'SEND_CONFIRMATION_EMAIL' :True,
     'PASSWORD_CHANGED_EMAIL_CONFIRMATION':True,
     'USERNAME_CHANGED_EMAIL_CONFIRMATION' : True,
-    
+
     'USER_CREATE_PASSWORD_RETYPE' : True,
     'SET_USERNAME_RETYPE': True,
-    
-    
+
+
     'SET_PASSWORD_RETYPE' : True,
     'PASSWORD_RESET_CONFIRM_RETYPE':True,
-    
+
     'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND' : True,
     'USERNAME_RESET_SHOW_EMAIL_NOT_FOUND' : True,
 
@@ -186,7 +194,7 @@ DJOSER = {
 
         },
     'EMAIL': EMAIL,
-    
+
     'LOGIN_FIELD' : 'email'
 }
 
@@ -201,14 +209,29 @@ CORS_ALLOW_CREDENTIALS = True
 
 DATABASES = {
 	'default': {
-		'ENGINE': os.getenv('DB_ENGINE','django.db.backends.sqlite3'),
-		'NAME':  os.getenv('DB_NAME',os.path.join(BASE_DIR, "db.sqlite3")),  
-		'USER': os.getenv('DB_USER','root'),
-		'PASSWORD': os.getenv('DB_PASSWORD','root'),
-		'HOST': os.getenv('DB_HOST','localhost'),
-		'PORT': os.getenv('DB_PORT','3306')
-	}
+		'ENGINE': "django.db.backends.mysql",
+		'NAME': "votifyapp$votifyAppDb",
+		'USER': "votifyapp",
+		'PASSWORD': "votify@admin",
+		'HOST': "votifyapp.mysql.pythonanywhere-services.com",
+		 "OPTIONS": {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES', innodb_strict_mode=1",
+            'charset': 'utf8mb4',
+            "autocommit": True,
+        }
+		#'PORT': 3306
+		}
 }
+#DATABASES = {
+#	'default': {
+#		'ENGINE': os.getenv('DB_ENGINE','django.db.backends.sqlite3'),
+#		'NAME':  os.getenv('DB_NAME',os.path.join(BASE_DIR, "db.sqlite3")),
+#		'USER': os.getenv('DB_USER','root'),
+#		'PASSWORD': os.getenv('DB_PASSWORD','root'),
+#		'HOST': os.getenv('DB_HOST','localhost'),
+#		'PORT': os.getenv('DB_PORT','3306')
+#	}
+#}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -240,14 +263,14 @@ USE_I18N = True
 
 USE_TZ = True
 
-from datetime import datetime 
+from datetime import datetime
 print(datetime.now())
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 '''Create the static root : python3 manage.py collectstatic'''
-STATIC_URL = '/static/'  
+STATIC_URL = '/static/'
 
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -261,22 +284,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DJANGO_ALLOWED_HOSTS = ['localhost','votifyapp.pythonanywhere.com','127.0.0.1']
 
 
-#Email sending Configuration
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND')
-EMAIL_HOST =  os.getenv('EMAIL_HOST')
-EMAIL_USE_TLS =os.getenv('EMAIL_USE_TLS')
-EMAIL_PORT = os.getenv('EMAIL_PORT')
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-print("Email :",EMAIL_HOST_USER)
+#Mailing service
+EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST="smtp.gmail.com"
+EMAIL_USE_TLS=True
+EMAIL_PORT=587
+EMAIL_HOST_USER="yaomariussodokin@gmail.com"
+EMAIL_HOST_PASSWORD="beagvuxewtwwutib"
 
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
 print("Password :",EMAIL_HOST_PASSWORD)
 
 
 NAME = "VOTIFY APP"
 
 
-#Add docker configuration 
+#Add docker configuration
 
 
 #DEBUG = int(os.getenv("DEBUG", default=0))

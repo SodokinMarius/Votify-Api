@@ -25,24 +25,24 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    
+
             #-----------------------------------------------------#
             #                   SWAGGER ROUTER                    #
             #-----------------------------------------------------#
     path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-   
+    path('documentation/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
             path('admin/', admin.site.urls),
-    
+
             #-----------------------------------------------------#
             #                   AUTHENTICATION ROUTER             #
             #-----------------------------------------------------#
             path('auth/', include('authentication.urls')),
-            
+
             #-----------------------------------------------------#
             #                   VOTIFY ROUTER                     #
             #-----------------------------------------------------#
-            path('api/', include('votifyApp.urls')),     
-      
-            
+            path('api/', include('votifyApp.urls')),
+
+
 ]
