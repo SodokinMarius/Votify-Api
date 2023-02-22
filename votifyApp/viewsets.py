@@ -1,6 +1,8 @@
 import pandas as pd
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+
+from .utils.send_email import send_email_to
 from django.core.mail import send_mail
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
@@ -8,10 +10,8 @@ from rest_framework.response import Response
 import json
 from .models import Election, Voter
 from .serializers import *
-from rest_framework.request import Request
 from django.db.models import Q
 from django.db.models import Count
-from django.http import Http404
 
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -19,9 +19,8 @@ User = get_user_model()
 
 
 from .models import *
-from .permissions import isOwnerOrReadOnly, isVoteAdmin
+from .permissions import isOwnerOrReadOnly, isVoteAdmin, isSuperAdmin
 from .utils.enums import ProgressChoiceEnum, TypeElectionEnum
-from .utils.utils import determine_remaining_duration
 
 
 
@@ -93,100 +92,82 @@ class ElectionViewSet(viewsets.ModelViewSet):
     """
     
     def perform_create(self, serializer):
-        election = serializer.save()
-        file = self.request.FILES.get('authorized_voters_file')
-        if file:
-            # read the excel file using pandas
-            df = pd.read_excel(file)
-            # check if there is a column 'email'
-            if 'email' not in df.columns:
-                raise ValidationError({'error': 'The excel file must contain a column named "email"'})
-            # check if there are any empty cells in the 'email' column
-            if df['email'].isnull().sum() > 0:
-                raise ValidationError({'error': 'The "email" column cannot contain empty cells'})
-            # loop through the email addresses and check if they exist in the Voter model
-            subject = NotificationTypeEnum.NEW_VOTE.value
-            from_email = "yaomariussodokin@gmail.com"
-            voters = []
-            voters_email = {
-                "subscribed":"",
-                "unsubscribed":""
-                }
-            anonymous_voters =  ""
-            for email in df['email']:
-                
-                print("Mail trouvé dans le fichier ------->",email)
-                try:
-                    user = User.objects.get(email=email)
-                    voter = Voter.objects.create(user=user)
-                    print("New Voter------------>",voter)
-                    voters.append(voter)
-                    message = "Vous êtes invité à participer à l'élection: {} crée par {}".format(election.title,self.request.user)
+        if self.request.user.is_vote_admin or self.request.user.is_admin:
+            election = serializer.save()
+            file = self.request.FILES.get('authorized_voters_file')
+            if file:
+                # read the excel file using pandas
+                df = pd.read_excel(file)
+                # check if there is a column 'email'
+                if 'email' not in df.columns:
+                    raise ValidationError({'error': 'The excel file must contain a column named "email"'})
+                # check if there are any empty cells in the 'email' column
+                if df['email'].isnull().sum() > 0:
+                    raise ValidationError({'error': 'The "email" column cannot contain empty cells'})
+                # loop through the email addresses and check if they exist in the Voter model
+                subject = NotificationTypeEnum.NEW_VOTE.value
+                from_email = "yaomariussodokin@gmail.com"
+                voters = []
+                voters_email = {
+                    "subscribed":"",
+                    "unsubscribed":""
+                    }
+                anonymous_voters =  ""
+                for email in df['email']:
                     
-                    # send notification to existing voter
-                    send_mail(
-                        subject=subject,
-                        message=message,
-                        from_email= from_email,
-                        recipient_list=[email],
-                        fail_silently=False,
-                    )
-                    voters_email["subscribed"] += email+' ' #Save the user Mail
+                    print("Mail trouvé dans le fichier ------->",email)
+                    try:
+                        user = User.objects.get(email=email)
+                        voter = ""
+                        if not  Voter.objects.filter(user=user).exists():
+                            voter = Voter.objects.create(user=user)
+                            print("New Voter------------>",voter)
+                            voters.append(voter)
+                        message = "Vous êtes invité à participer à l'élection: {} crée par {}".format(election.title,self.request.user.first_name,self.request.user.last_name)
+                        
+                        # send notification to existing voter
+                        
+                        send_email_to(
+                            subject=subject,
+                            message=message,
+                            recipients=[email,],
+                        )
+                    
+                        voters_email["subscribed"] += email+' ' #Save the user Mail
 
-                  
-                except Voter.DoesNotExist:
-                    # send notification to new voter
-                    send_mail(
-                        subject=subject,
-                        massage=f'A new election has been created. Please download the application and register with this email address to get your unique vote code.',
-                        from_email=from_email,
-                        recipient_list=[email],
-                        fail_silently=False,
-                    )
+                    
+                    except Voter.DoesNotExist:
+                        # send notification to new voter
+                        send_email_to(
+                            subject=subject,
+                            massage=f'A new election has been created. Please download the application and register with this email address to get your unique vote code.',
+                            recipients=[email,],
+                        )
 
-                except User.DoesNotExist: 
-                    voters_email["unsubscribed"] += email +' ' # Add to email list in the database when user doesn't login
+                    except User.DoesNotExist: 
+                        voters_email["unsubscribed"] += email +' ' # Add to email list in the database when user doesn't login
 
-                    continue
-            
-            #Creation de la notification dans le table Notification
+                        continue
                 
-                Notification.objects.create(
-                    notif_type=subject,
-                    notif_content="Une nouvelle élection de titre {}  vient d'être crée par {}".format(election.title,self.request.user),
-                    notif_read_status=False,                    
-                )
-            election.authorized_voters.set(voters)
+                #Creation de la notification dans le table Notification
+                    
+                    Notification.objects.create(
+                        notif_type=subject,
+                        notif_content="Une nouvelle élection de titre {}  vient d'être crée par Mr {} {}".format(election.title,self.request.user.first_name,self.request.user.last_name,),
+                        notif_read_status=False,                    
+                    )
+                if len(voters) > 0:
+                    election.authorized_voters.set(voters)
 
-        """#Options treating before saving the elections    
-        options = []
-        option_data = []
-        try:
-            options_data = self.request.data.getlist('options')
-            options_data = json.dumps(option_data)
-            print("La liste des options ==== try =============",option_data)
-
-        except :
-            options_data = [{"IFRI","Marius"},{"EPAC",'SOD'},]
             
-      
-        print("La liste des options =================",option_data)
-        for option_data in options_data:
-            # Créer une instance Option pour chaque option entrée par l'utilisateur
-            option_serializer = OptionSerializer(data=option_data)
-            option_serializer.is_valid(raise_exception=True)
-            option = option_serializer.save(creator=self.request.user)
-            options.append(option)
+            serializer.save()
+            
+            # save the election after processing the excel file
+            election.voters_email = voters_email
+            election.creator = self.request.user
+            election.save()
+        #return Response({"unauthorized":"Vous n'avez pas les droits de créer un vote !"},status=status.HTTP_400_BAD_REQUEST)
 
-        # Ajouter les options à l'objet Election avant de le valider
-        serializer.validated_data['options'] = options
-        serializer.validated_data['creator'] = self.request.user"""
-        serializer.save()
-        
-        # save the election after processing the excel file
-        election.voters_email = voters_email
-        election.creator = self.request.user
-        election.save()
         
         
     def create(self, request, *args, **kwargs):
@@ -393,49 +374,7 @@ class ElectionViewSet(viewsets.ModelViewSet):
         return Response(data=response)
 
     
-    
-    """@action(detail=True, methods=['get'], url_path="vote/(?P<option_code>[^/.]+)", url_name="vote")
-    def vote(self,request,**kwargs):
-        user_id = self.request.user
-        election_id = self.kwargs['pk']
 
-        #election = self.get_object() # Get the currently requested Election instance
-        option_code = ""
-        election = 0
-        try:
-            option_code = self.kwargs['option_code']
-            election = Election.objects.get(id=election_id)
-        except Option.DoesNotExist:
-            raise Http404("Option does not exist")
-        
-
-        print("option id-------------",option_code)
-
-        # Check if voter and election exist
-        voter = ""
-        election = ""
-        try:
-            user = User.objects.get(email=user_id)
-            voter = Voter.objects.get(user=user)
-            #election = Election.objects.get(id=election_id)
-        except (Voter.DoesNotExist, Election.DoesNotExist):
-            return Response({'message': 'Invalid voter or election Vt{} et El{}'.format(self.request.user,election)}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Check if option exists and is for this specific election
-        try:
-            print("Cet option id ==========",option_code)
-            option = Option.objects.get(code=option_code, related_election=election)
-        except Option.DoesNotExist:
-            return Response({'message': 'Invalid option ID'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Check if the voter has already voted in this election
-        if Vote.objects.filter(voter=voter, election=election).count() >= election.turn_number:
-            return Response({'message': 'Vous avez déjà terminé les votes relatives à cette election'}, status=status.HTTP_400_BAD_REQUEST)
-
-        option.vote_counter += 1
-        vote = Vote.objects.create(voter=voter, election=election, choosed_option=option)
-
-        return Response({'message': 'Vote registered successfully', 'vote_id': vote.id}, status=status.HTTP_201_CREATED)"""
         
     @action(detail=True, methods=['get'], url_path="vote/(?P<option_id>[^/.]+)", url_name="vote")
     def vote(self, request, option_id, **kwargs):
@@ -517,7 +456,7 @@ class VoteViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         method = self.request.method
         if  method in ('PUT', 'PATCH','POST'):
-           return [permissions.IsAuthenticatedOrReadOnly(),isOwnerOrReadOnly()]
+           return [permissions.IsAuthenticatedOrReadOnly(),isOwnerOrReadOnly(),isVoteAdmin]
         else  :    
             return [permissions.IsAuthenticated()]
 
@@ -526,7 +465,7 @@ class VoteViewSet(viewsets.ModelViewSet):
 class NotificationViewSet(viewsets.ModelViewSet):  
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
-    permission_classes = (permissions.IsAuthenticated, isVoteAdmin)
+    permission_classes = (permissions.IsAuthenticated)
     
        
     http_method_names = ['get']
@@ -550,6 +489,79 @@ class NotificationViewSet(viewsets.ModelViewSet):
         return Response(serializer.data,status=status.HTTP_201_CREATED)
       
     
+class VoteAdminRequestViewSet(viewsets.ModelViewSet):  
+    queryset = VoteAdminRequest.objects.all()
+    serializer_class = VoteAdminRequestSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    
+
+    http_method_names = ['get','post','patch']
+    
+    def get_permissions(self):
+        method = self.request.method
+        if  method in ('GET','PATCH',):
+           return [permissions.IsAuthenticatedOrReadOnly(),isOwnerOrReadOnly(),isSuperAdmin]
+        else  :    
+            return [permissions.IsAuthenticated()]
+    
+    
+    def perform_create(self,serializer):
+        data = serializer.validated_data 
+        serializer.validated_data['creator'] = self.request.user
+        
+        #Notif sending to admins
+        send_mail(
+            subject= data['subject'],
+            message= data['message'],
+            from_email=  self.request.user.email,
+            recipient_list= ["yaomariussodokin@gmail.com","allowakouferdinand@gmail.com","gbessikenedy@gmail.com","gillesahouantchede@gmail.com"],
+            fail_silently=False,
+                )
+        #saving the request in db
+     
+        VoteAdminRequest.objects.create(
+            creator = self.request.user,
+            subject = data['subject'],
+            message = data['message'],
+        )
+        serializer.save()
+    
+    
+    @action(detail=True,methods=['get'],url_path="accept", url_name="accept")
+    def accept(self, request, pk=None):        
+        demand =  self.get_object()
+        user = demand.creator 
+        if not self.user.is_supper:
+            return Response(data={'status': "Vous n'avez pas les droits !"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(demand.message) <100:
+            demand.is_validated = True
+            demand.save()
+            user.is_vote_admin = True
+            user.save()
+
+            return_message = "Demande acceptée avec succès, vous êtes desormais un administrateur de vote  !" 
+            send_email_to(
+            subject= "Autorisation Accordée",
+            message= demand.message,
+            recipient_list=[user.email],
+            fail_silently=False,
+                )
+            return Response(data={'status':return_message }, status=status.HTTP_202_ACCEPTED)
+        return Response(data={'status': "Message non approuvé !"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,methods=['get'],url_path="reject", url_name="reject")
+    def reject(self, request, pk=None):        
+        demand =  self.get_object()
+        user = demand.creator     
+        send_email_to(
+        subject= "Rejet de la demande",
+        message= "Demande rejetée ! Message non approuvé !",
+        recipient_list=[user.email],
+            )
+        return Response(data={'status': "Demande rejetée ! Message non approuvé !"}, status=status.HTTP_400_BAD_REQUEST)
+
+
   
 
   

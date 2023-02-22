@@ -25,7 +25,7 @@ print("Secret key ", SECRET_KEY)
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 # Application definition
@@ -170,7 +170,7 @@ AUTHENTICATION_BACKENDS = [
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '/password/reset/confirm/{uid}/{token}',
     'USERNAME_RESET_CONFIRM_URL': '/username/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': '/activate/{uid}/{token}',
+    'ACTIVATION_URL': 'activation/<str:email>/<str:code>',
     'SEND_ACTIVATION_EMAIL': True,
     'SEND_CONFIRMATION_EMAIL' :True,
     'PASSWORD_CHANGED_EMAIL_CONFIRMATION':True,
@@ -198,7 +198,7 @@ DJOSER = {
     'LOGIN_FIELD' : 'email'
 }
 
-
+APPEND_SLASH = False
 
 # CORS HEADERS
 CORS_ORIGIN_ALLOW_ALL = True
@@ -209,18 +209,33 @@ CORS_ALLOW_CREDENTIALS = True
 
 DATABASES = {
 	'default': {
+<<<<<<< HEAD
 		'ENGINE': "django.db.backends.mysql",
 		'NAME': "votifyapp$votifyAppDb",
 		'USER': "votifyapp",
 		'PASSWORD': "votify@admin",
 		'HOST': "votifyapp.mysql.pythonanywhere-services.com",
 		 "OPTIONS": {
+=======
+		'ENGINE': os.getenv('DB_ENGINE','django.db.backends.sqlite3'),
+		'NAME':  os.getenv('DB_NAME',os.path.join(BASE_DIR, "db.sqlite3")),  
+		'USER': os.getenv('DB_USER','root'),
+		'PASSWORD': os.getenv('DB_PASSWORD','root'),
+		'HOST': os.getenv('DB_HOST','localhost'),
+		'PORT': os.getenv('DB_PORT','3306'),
+  	     "OPTIONS": {
+>>>>>>> 46ad1d0bf4569949ca9066f6e18705cc64c8a472
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES', innodb_strict_mode=1",
             'charset': 'utf8mb4',
             "autocommit": True,
         }
+<<<<<<< HEAD
 		#'PORT': 3306
 		}
+=======
+
+	}
+>>>>>>> 46ad1d0bf4569949ca9066f6e18705cc64c8a472
 }
 #DATABASES = {
 #	'default': {
@@ -310,4 +325,9 @@ print("DEBUG ------------>",DEBUG)
 
 
 
-
+"""
+    {
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NzUxMzE2MCwianRpIjoiZGYzNDAzMDVjYTYxNDJlZjgwMGZlZGJmMWJlYjc1MjQiLCJ1c2VyX2lkIjoic3lhb21hcml1c0BnbWFpbC5jb20ifQ.tKgvbQgYfAbNToCtwGYmre-ORRNhiNCT3UiDl_7O_JQ",
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc3MTY3NTYwLCJqdGkiOiJkZjFkMjM1ZDhhMTY0NzY0YmVkYTFiMjkwOTkzZWY1NSIsInVzZXJfaWQiOiJzeWFvbWFyaXVzQGdtYWlsLmNvbSJ9.PYNNKSrP0iH3hA9mBjp-Qf2fUHbwjc5_UgtvY4PeNQM"
+}
+    """

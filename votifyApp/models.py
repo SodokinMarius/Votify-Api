@@ -97,4 +97,14 @@ class Notification(models.Model):
     def __str__(self):
         return f'{self.notif_type}'
     
- 
+class VoteAdminRequest(models.Model) :
+    creator = models.ForeignKey(to=settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True)
+    subject = models.CharField(max_length=500)
+    message = models.TextField(max_length=1000)
+    is_validated = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True,null=True)
+
+    
+    def __str__(self):
+        return f'{self.user.email} => {self.subject}'
+

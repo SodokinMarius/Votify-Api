@@ -16,6 +16,8 @@ router.register('notifications',NotificationViewSet)
 
 router.register('elections',ElectionViewSet)
 
+router.register('requests',VoteAdminRequestViewSet)
+
 
 
 
