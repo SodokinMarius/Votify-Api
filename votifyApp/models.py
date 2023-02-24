@@ -69,7 +69,7 @@ class Election(models.Model):
 class Option(models.Model):
     code = models.CharField(max_length=100,null=False,unique=True)
     full_name = models.CharField(max_length=500)
-    image = models.ImageField(upload_to="options_images")
+    image = models.ImageField(upload_to="options_images",default="static/images/default_option.jpg")
     vote_counter = models.IntegerField(null=True)
     creator = models.ForeignKey(to=settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True)
     related_election = models.ForeignKey(to=Election,on_delete=models.CASCADE,null=False,related_name="options")
@@ -100,7 +100,8 @@ class Notification(models.Model):
 class VoteAdminRequest(models.Model) :
     creator = models.ForeignKey(to=settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True)
     subject = models.CharField(max_length=500)
-    message = models.TextField(max_length=1000)
+    message = models.TextField(max_length=1000)    
+    creator_identity_piece = models.ImageField(upload_to="identity_pieces",default="static/images/default_piece.jpg")
     is_validated = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True,null=True)
 

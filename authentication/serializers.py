@@ -6,18 +6,26 @@ from rest_framework import serializers
 
 from votifyApp.utils import send_email 
 from votifyApp.utils import random_generate
+from django.core.validators import FileExtensionValidator
 
 
 User = get_user_model()
 
 class UserCreateSerializer(DjoserUserSerializer):
-
+    image = serializers.ImageField(
+        required=True,
+        allow_empty_file=False,
+        use_url=False,
+        validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg'])]
+        
+    )
     class Meta(DjoserUserSerializer.Meta):
         model = User
-        fields = ['username','email','first_name','last_name','address','phone','password']        
+        fields = ['username','email','first_name','last_name','address','phone', 'image','password','is_vote_admin']  
+        read_only_fields = ('is_vote_admin',)      
         extra_kwargs = {'password': {'write_only': True}}
         depth = 1
-
+        
     def validate(self, attrs):
         self.fields.pop("re_password", None)
         re_password = attrs.pop("re_password")
@@ -26,6 +34,13 @@ class UserCreateSerializer(DjoserUserSerializer):
             return attrs
         else:
             self.fail("password_mismatch")
+    
+    def create(self, validated_data):
+        image = validated_data.pop('image')
+        user = User.objects.create(**validated_data)
+        user.image = image
+        user.save()        
+        return user
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()

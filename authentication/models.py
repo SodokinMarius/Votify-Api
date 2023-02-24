@@ -49,8 +49,9 @@ class User(AbstractBaseUser,PermissionsMixin):
     last_name = models.CharField(max_length=200)
     address = models.CharField(max_length=200)
     phone = models.CharField(max_length=12)
+    image = models.ImageField(upload_to="users_images",default="static/images/default_user.png")
     is_admin = models.BooleanField(default=False)
-    is_vote_admin = models.BooleanField(default=False,null=False)
+    is_vote_admin = models.BooleanField(default=True,null=False)
     is_verified=models.BooleanField(default=False)   
     is_active=models.BooleanField(default=True)
     is_staff=models.BooleanField(default=False)
@@ -58,9 +59,9 @@ class User(AbstractBaseUser,PermissionsMixin):
     updated_at=models.DateTimeField(auto_now_add=True)
     
     USERNAME_FIELD='email'
-    REQUIRED_FIELDS=['username','first_name','last_name','address','phone']
+    REQUIRED_FIELDS=['username','first_name','last_name','address','phone','image']
  
-    objects = UserManager()  # Telling to Django how to manage objects
+    objects = UserManager()  # Telling to Django how to manage -objects
 
     def __str__(self):
         return self.email

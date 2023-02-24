@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from .models import User
 
 from .serializers import LogoutSerializer
+from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
 
 #------------ Complete ------------
 from django.http import HttpResponse
@@ -53,19 +54,25 @@ class LogoutAPIView(generics.GenericAPIView):
 
         return Response(data=data,status=status.HTTP_204_NO_CONTENT)
 
+from django.contrib.sites.shortcuts import get_current_site
+
 
 class AccountUserViewset(UserViewSet):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
+    parser_classes = (MultiPartParser, FormParser, FileUploadParser)
 
     def perform_create(self, serializer):
+        current_site = get_current_site(self.request)
+        domain = current_site.domain
+        app_name = 'votify'  # Remplacez par le nom de votre application
         user = serializer.save()
         activation_code = random_pass_generator()
 
         user_activation_code = UserActivationCode.objects.create(user=user, activation_code=activation_code)
         user_activation_code.save()
 
-        activation_message = f"<br>Salut  {user.username}.\n\nVous recevez cet message car vous venez de vous inscrire sur l'application votify, veuillez activer votre comptre en utilisant le code suivant :\n\n{activation_code}</br>"
+        activation_message = f"Salut  {user.username}.\n\nVous recevez cet message car vous venez de vous inscrire sur   l'application {app_name}, veuillez activer votre compte  en utilisant le code suivant :\n\n{activation_code}"
         send_email_to("Account activation ", activation_message, [user.email])
  
 
@@ -124,14 +131,14 @@ class UserActivationView(APIView):
             user_activation.usable=False
             user_activation.save()
 
-            activation_message = f"Salut {user.username}\n\nVotre compte a été crée et activé avec succès !"
+            activation_message = f"Salut {user.username}\n\nVotre compte a été crée et activé avec succès ! sur votify"
             send_email_to("Account Activated", activation_message, [user.email])
             return Response({'message': 'Account activted successfully'})
         else:
             return Response({'message':'Invalid activation code'})
 
 
-class PromoteToVoteAdminView(UpdateAPIView):
+"""class PromoteToVoteAdminView(UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
     lookup_field = 'pk'
@@ -144,4 +151,4 @@ class PromoteToVoteAdminView(UpdateAPIView):
 
 
 
-
+"""
