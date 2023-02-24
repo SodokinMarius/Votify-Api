@@ -20,7 +20,7 @@ urlpatterns = [
     path('', include('djoser.urls.jwt')),
     path('', include('djoser.social.urls')),
     
-    path('promote/', PromoteToVoteAdminView.as_view(), name='promote_to_vote_admin'),
+    #path('promote/', PromoteToVoteAdminView.as_view(), name='promote_to_vote_admin'),
 
     path('logout/', LogoutAPIView.as_view(), name="logout"),
 

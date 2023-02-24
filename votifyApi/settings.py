@@ -291,11 +291,3 @@ CURRENT_USER_ID = None
 print("DEBUG ------------>",DEBUG)
 
 
-
-
-"""
-    {
-  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NzUxMzE2MCwianRpIjoiZGYzNDAzMDVjYTYxNDJlZjgwMGZlZGJmMWJlYjc1MjQiLCJ1c2VyX2lkIjoic3lhb21hcml1c0BnbWFpbC5jb20ifQ.tKgvbQgYfAbNToCtwGYmre-ORRNhiNCT3UiDl_7O_JQ",
-  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc3MTY3NTYwLCJqdGkiOiJkZjFkMjM1ZDhhMTY0NzY0YmVkYTFiMjkwOTkzZWY1NSIsInVzZXJfaWQiOiJzeWFvbWFyaXVzQGdtYWlsLmNvbSJ9.PYNNKSrP0iH3hA9mBjp-Qf2fUHbwjc5_UgtvY4PeNQM"
-}
-    """
