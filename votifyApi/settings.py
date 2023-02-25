@@ -25,7 +25,7 @@ print("Secret key ", SECRET_KEY)
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 # Application definition
@@ -209,44 +209,27 @@ CORS_ALLOW_CREDENTIALS = True
 
 DATABASES = {
 	'default': {
-<<<<<<< HEAD
+
 		'ENGINE': "django.db.backends.mysql",
 		'NAME': "votifyapp$votifyAppDb",
 		'USER': "votifyapp",
 		'PASSWORD': "votify@admin",
 		'HOST': "votifyapp.mysql.pythonanywhere-services.com",
-		 "OPTIONS": {
-=======
-		'ENGINE': os.getenv('DB_ENGINE','django.db.backends.sqlite3'),
-		'NAME':  os.getenv('DB_NAME',os.path.join(BASE_DIR, "db.sqlite3")),  
-		'USER': os.getenv('DB_USER','root'),
-		'PASSWORD': os.getenv('DB_PASSWORD','root'),
-		'HOST': os.getenv('DB_HOST','localhost'),
-		'PORT': os.getenv('DB_PORT','3306'),
+
   	     "OPTIONS": {
->>>>>>> 46ad1d0bf4569949ca9066f6e18705cc64c8a472
+
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES', innodb_strict_mode=1",
             'charset': 'utf8mb4',
             "autocommit": True,
         }
-<<<<<<< HEAD
+
 		#'PORT': 3306
 		}
-=======
+
 
 	}
->>>>>>> 46ad1d0bf4569949ca9066f6e18705cc64c8a472
-}
-#DATABASES = {
-#	'default': {
-#		'ENGINE': os.getenv('DB_ENGINE','django.db.backends.sqlite3'),
-#		'NAME':  os.getenv('DB_NAME',os.path.join(BASE_DIR, "db.sqlite3")),
-#		'USER': os.getenv('DB_USER','root'),
-#		'PASSWORD': os.getenv('DB_PASSWORD','root'),
-#		'HOST': os.getenv('DB_HOST','localhost'),
-#		'PORT': os.getenv('DB_PORT','3306')
-#	}
-#}
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -325,9 +308,4 @@ print("DEBUG ------------>",DEBUG)
 
 
 
-"""
-    {
-  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NzUxMzE2MCwianRpIjoiZGYzNDAzMDVjYTYxNDJlZjgwMGZlZGJmMWJlYjc1MjQiLCJ1c2VyX2lkIjoic3lhb21hcml1c0BnbWFpbC5jb20ifQ.tKgvbQgYfAbNToCtwGYmre-ORRNhiNCT3UiDl_7O_JQ",
-  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc3MTY3NTYwLCJqdGkiOiJkZjFkMjM1ZDhhMTY0NzY0YmVkYTFiMjkwOTkzZWY1NSIsInVzZXJfaWQiOiJzeWFvbWFyaXVzQGdtYWlsLmNvbSJ9.PYNNKSrP0iH3hA9mBjp-Qf2fUHbwjc5_UgtvY4PeNQM"
-}
-    """
+
