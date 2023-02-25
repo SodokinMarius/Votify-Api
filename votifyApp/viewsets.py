@@ -13,7 +13,7 @@ from .serializers import *
 from django.db.models import Q
 from django.db.models import Count
 
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
 
 User = get_user_model()
 
@@ -23,12 +23,12 @@ from .permissions import isOwnerOrReadOnly, isVoteAdmin, isSuperAdmin
 from .utils.enums import ProgressChoiceEnum, TypeElectionEnum
 
 
-
 class OptionViewSet(viewsets.ModelViewSet):   
     queryset = Option.objects.all()
     serializer_class = OptionSerializer
     permission_classes = (permissions.IsAuthenticated, isVoteAdmin) # Avant de créér une option il faut être un AdminVote
-    
+    parser_classes = (MultiPartParser, FormParser, FileUploadParser)
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=isinstance(request.data, list))
         serializer.is_valid(raise_exception=True)
@@ -91,8 +91,11 @@ class ElectionViewSet(viewsets.ModelViewSet):
     Method that personalize the an election creation by treating an xlsx file with pandas
     """
     
-    def perform_create(self, serializer):
-        if self.request.user.is_vote_admin or self.request.user.is_admin:
+    """def perform_create(self, serializer):
+        if not (self.request.user.is_vote_admin and self.request.user.is_admin):
+            print("PAs authorisé !!!")
+            return Response({"unauthorized":"Vous n'avez pas les droits de créer un vote !"},status=status.HTTP_400_BAD_REQUEST)
+        else:
             election = serializer.save()
             file = self.request.FILES.get('authorized_voters_file')
             if file:
@@ -165,15 +168,92 @@ class ElectionViewSet(viewsets.ModelViewSet):
             # save the election after processing the excel file
             election.voters_email = voters_email
             election.creator = self.request.user
-            election.save()
-        #return Response({"unauthorized":"Vous n'avez pas les droits de créer un vote !"},status=status.HTTP_400_BAD_REQUEST)
+            election.save()"""
 
-        
-        
+           
     def create(self, request, *args, **kwargs):
+        
         serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        #self.perform_create(serializer)
+        if not (self.request.user.is_vote_admin or self.request.user.is_admin):
+            return Response({"unauthorized":f"Vous n'avez pas l'autorisation requise pour créer une élection  ! Veuillez effectuer au prealable une demande !"},status=status.HTTP_400_BAD_REQUEST)
+        else:
+            election = serializer.save()
+            file = self.request.FILES.get('authorized_voters_file')
+            if file:
+                if str(file).split('.')[1] == 'xlsx': # file extension must be xlsx that is excel format
+                # read the excel file using pandas
+                    df = pd.read_excel(file)
+                    # check if there is a column 'email'
+                    if 'email' not in df.columns:
+                        raise ValidationError({'error': 'The excel file must contain a column named "email"'})
+                    # check if there are any empty cells in the 'email' column
+                    if df['email'].isnull().sum() > 0:
+                        raise ValidationError({'error': 'The "email" column cannot contain empty cells'})
+                    # loop through the email addresses and check if they exist in the Voter model
+                    subject = NotificationTypeEnum.NEW_VOTE.value
+                    voters = []
+                    voters_email = {
+                        "subscribed":"",
+                        "unsubscribed":""
+                        }
+                    for email in df['email']:
+                        
+                        print("Mail trouvé dans le fichier ------->",email)
+                        try:
+                            user = User.objects.get(email=email)
+                            voter = ""
+                            if not  Voter.objects.filter(user=user).exists():
+                                voter = Voter.objects.create(user=user)
+                                print("New Voter------------>",voter)
+                                voters.append(voter)
+                            message = "Vous êtes invité à participer à l'élection: {} crée par {}".format(election.title,self.request.user.first_name,self.request.user.last_name)
+                            
+                            # send notification to existing voter
+                            
+                            send_email_to(
+                                subject=subject,
+                                message=message,
+                                recipients=[email,],
+                            )
+                        
+                            voters_email["subscribed"] += email+' ' #Save the user Mail
+
+                        
+                        except Voter.DoesNotExist:
+                            # send notification to new voter
+                            send_email_to(
+                                subject=subject,
+                                massage=f'A new election has been created. Please download the application and register with this email address to get your unique vote code.',
+                                recipients=[email,],
+                            )
+
+                        except User.DoesNotExist: 
+                            voters_email["unsubscribed"] += email +' ' # Add to email list in the database when user doesn't login
+
+                            continue
+                    
+                    #Creation de la notification dans le table Notification
+                        
+                        Notification.objects.create(
+                            notif_type=subject,
+                            notif_content="Une nouvelle élection de titre {}  vient d'être crée par Mr {} {}".format(election.title,self.request.user.first_name,self.request.user.last_name,),
+                            notif_read_status=False,                    
+                        )
+                    if len(voters) > 0:
+                        election.authorized_voters.set(voters)
+                else :
+                    return Response({'FileError':"Le fichier soumis n'est pas de format excel !"}, status=status.HTTP_201_CREATED)
+
+            serializer.save()
+            
+            # save the election after processing the excel file
+            election.voters_email = voters_email
+            election.creator = self.request.user
+            election.save()
+    
+        print("C'est moi qui execute .......")
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
  
@@ -191,6 +271,14 @@ class ElectionViewSet(viewsets.ModelViewSet):
         public_elections = self.queryset.filter(election_type=TypeElectionEnum.PUBLIC.value)
         private_elections = self.queryset.filter(election_type=TypeElectionEnum.PRIVATE.value)
 
+        public_elections_data = [
+                {
+                    'election': ElectionSerializer(election).data,
+                    'options': OptionSerializer(Option.objects.filter(related_election=election),many=True).data
+                }
+                for election in public_elections
+            ]
+
         authorized_private_elections = []
         for election in private_elections:
             emails = election.voters_email
@@ -203,16 +291,44 @@ class ElectionViewSet(viewsets.ModelViewSet):
             if user in autorized_voters   or election.creator == user:
                 authorized_private_elections.append(election)
         
-        public_elections_serializer = ElectionSerializer(public_elections, many=True)
-        private_elections_serializer = ElectionSerializer(authorized_private_elections, many=True)
-        
+        private_elections_data = [
+                {
+                    'election': ElectionSerializer(election).data,
+                    'options': OptionSerializer(Option.objects.filter(related_election=election),many=True).data
+                }
+                for election in authorized_private_elections
+            ]
         response_data = {
-            'public_elections': public_elections_serializer.data,
-            'private_elections': private_elections_serializer.data,
+            'public_elections': public_elections_data,
+            'private_elections': private_elections_data
         }
         
         return Response(data=response_data, status=status.HTTP_200_OK)
 
+
+    """
+    Retrieve a specific election by customising the output
+    for that, user retrieve directly the election if public
+    if this one is private, he must be creator or between the conserned voters 
+    else an empty list is returned
+    """
+    
+    def retrieve(self, request, *args, **kwargs):
+        election = self.get_object()
+        autorized_voters = list(election.authorized_voters.all())
+        data = {}
+        if election.election_type == TypeElectionEnum.PUBLIC.value:
+         data =    {
+                'election': ElectionSerializer(election).data,
+                'options': OptionSerializer(Option.objects.filter(related_election=election),many=True).data
+            }
+        else:
+            if self.request.user in autorized_voters or election.creator == self.request.user:
+                data =    {
+                'election': ElectionSerializer(election).data,
+                'options': OptionSerializer(Option.objects.filter(related_election=election),many=True).data
+            }
+        return Response(data=data,status=status.HTTP_200_OK)
     """_summary_
     THis function take a election status as parameter and returns 
     all Elections whatever the type after treating
@@ -225,16 +341,27 @@ class ElectionViewSet(viewsets.ModelViewSet):
         Q(election_type=TypeElectionEnum.PUBLIC.value) &
         Q(progress_status=retrieved_status)
         ).order_by('-created_at')
-    
+       
+       # Add public election and their options to a dict
+        public_elections_data = [
+                {
+                    'election': ElectionSerializer(election).data,
+                    'options': OptionSerializer(Option.objects.filter(related_election=election),many=True).data
+                }
+                for election in public_elections
+            ]
+
         private_elections = self.queryset.filter(
         Q(progress_status=retrieved_status) &
         Q(election_type=TypeElectionEnum.PRIVATE.value)
         ).order_by('-created_at')
         
         print("Private",private_elections,"Public ===",public_elections)
+    
 
         authorized_private_elections = []
         for election in private_elections:
+            print("Election options =====++>",election.options.all())
             autorized_voters = list(election.authorized_voters.all())
             print("Autorized voter-----------ff", autorized_voters,"User--------",self.request.user)
             print("'Creator==========+++  yyy-->",election.creator)
@@ -243,12 +370,20 @@ class ElectionViewSet(viewsets.ModelViewSet):
             if self.request.user in autorized_voters or election.creator == self.request.user:
                 print("ouiii-----------------------------------,",election.creator == self.request.user)
                 authorized_private_elections.append(election)
-        public_elections_serializer = ElectionSerializer(public_elections, many=True)
-        private_elections_serializer = ElectionSerializer(authorized_private_elections, many=True)
+        #public_elections_serializer = ElectionSerializer(public_elections, many=True)
+        # Add public election and their options to a list of dict
+        private_elections_data = [
+                {
+                    'election': ElectionSerializer(election).data,
+                    'options': OptionSerializer(Option.objects.filter(related_election=election),many=True).data
+                }
+                for election in authorized_private_elections
+            ]
+        #private_elections_serializer = ElectionSerializer(authorized_private_elections, many=True)
         
         response_data = {
-            'public_elections': public_elections_serializer.data,
-            'private_elections': private_elections_serializer.data,
+            'public_elections': public_elections_data,
+            'private_elections': private_elections_data
         }
         print("Private",response_data["private_elections"],"Public ===",response_data["public_elections"])
         return response_data
@@ -373,9 +508,7 @@ class ElectionViewSet(viewsets.ModelViewSet):
         response = self.changeElectionStatus(ProgressChoiceEnum.CANCELLED.value)
         return Response(data=response)
 
-    
-
-        
+         
     @action(detail=True, methods=['get'], url_path="vote/(?P<option_id>[^/.]+)", url_name="vote")
     def vote(self, request, option_id, **kwargs):
         user_id = self.request.user
@@ -492,19 +625,30 @@ class NotificationViewSet(viewsets.ModelViewSet):
 class VoteAdminRequestViewSet(viewsets.ModelViewSet):  
     queryset = VoteAdminRequest.objects.all()
     serializer_class = VoteAdminRequestSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-    
+    permission_classes = (permissions.IsAuthenticated,isSuperAdmin(),)
+    parser_classes = (MultiPartParser, FormParser, FileUploadParser)
+
 
     http_method_names = ['get','post','patch']
     
     def get_permissions(self):
         method = self.request.method
-        if  method in ('GET','PATCH',):
-           return [permissions.IsAuthenticatedOrReadOnly(),isOwnerOrReadOnly(),isSuperAdmin]
+        if  method in ('list','partial_update',):
+           return [isSuperAdmin(),]
         else  :    
             return [permissions.IsAuthenticated()]
     
     
+    def list(self, request, *args, **kwargs):
+        user = request.user
+        requests = self.queryset.filter(creator=user)
+
+        if user.is_superuser:
+            requests = self.queryset
+        serializer = self.get_serializer(requests, many=True)
+
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
     def perform_create(self,serializer):
         data = serializer.validated_data 
         serializer.validated_data['creator'] = self.request.user
@@ -531,33 +675,35 @@ class VoteAdminRequestViewSet(viewsets.ModelViewSet):
     def accept(self, request, pk=None):        
         demand =  self.get_object()
         user = demand.creator 
-        if not self.user.is_supper:
-            return Response(data={'status': "Vous n'avez pas les droits !"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if len(demand.message) <100:
+        if not self.request.user.is_superuser:
+            return Response(data={'status': "Vous n'avez pas les droits d'autoriser une demande  !"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if len(demand.message) >=100:
             demand.is_validated = True
             demand.save()
             user.is_vote_admin = True
             user.save()
 
-            return_message = "Demande acceptée avec succès, vous êtes desormais un administrateur de vote  !" 
+            return_message = f"Monsieur/Madame {demand.creator.username}',votre Demande acceptée avec succès, vous êtes desormais un administrateur de vote sur votify  !" 
             send_email_to(
             subject= "Autorisation Accordée",
-            message= demand.message,
-            recipient_list=[user.email],
-            fail_silently=False,
+            message= return_message,
+            recipients=[user.email],
                 )
             return Response(data={'status':return_message }, status=status.HTTP_202_ACCEPTED)
-        return Response(data={'status': "Message non approuvé !"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data={'status': "Message non approuvé. Au moins 100 caractères !"}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,methods=['get'],url_path="reject", url_name="reject")
     def reject(self, request, pk=None):        
         demand =  self.get_object()
-        user = demand.creator     
+        user = demand.creator   
+        if not self.request.user.is_superuser:
+            return Response(data={'status': "Vous n'avez pas les droits de rejeter une demande  !"}, status=status.HTTP_400_BAD_REQUEST)
+      
         send_email_to(
         subject= "Rejet de la demande",
-        message= "Demande rejetée ! Message non approuvé !",
-        recipient_list=[user.email],
+        message= f"Monsieur/Madame {user.username}, votre Demande a été rejetée sur votify ! Message non approuvé ! ",
+        recipients=[user.email],
             )
         return Response(data={'status': "Demande rejetée ! Message non approuvé !"}, status=status.HTTP_400_BAD_REQUEST)
 
