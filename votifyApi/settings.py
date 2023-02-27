@@ -207,12 +207,13 @@ CORS_ALLOW_CREDENTIALS = True
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+
 DATABASES = {
 	'default': {
 
 		'ENGINE': "django.db.backends.mysql",
-		'NAME': "votifyapp$votifyAppDb",
-		'USER': "votifyapp",
+		'NAME': "votifyAppDb",
+		'USER': "votifyAdmin",
 		'PASSWORD': "votify@admin",
 		'HOST': "votifyapp.mysql.pythonanywhere-services.com",
 
@@ -221,9 +222,9 @@ DATABASES = {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES', innodb_strict_mode=1",
             'charset': 'utf8mb4',
             "autocommit": True,
-        }
+        },
 
-		#'PORT': 3306
+		'PORT': 3306
 		}
 
 
@@ -305,10 +306,3 @@ CURRENT_USER_ID = None
 
 print("DEBUG ------------>",DEBUG)
 
-
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> 04837a0c41a7169f6128130fddc92ae0de2742fa

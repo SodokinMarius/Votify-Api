@@ -78,12 +78,8 @@ class AccountUserViewset(UserViewSet):
 
         user_activation_code = UserActivationCode.objects.create(user=user, activation_code=activation_code)
         user_activation_code.save()
-
-<<<<<<< HEAD
         activation_message = f"Salut  {user.username}.\n\nVous recevez cet message car vous venez de vous inscrire sur l'application votify, veuillez activer votre comptre en utilisant le code suivant :\n\n{activation_code}"
-=======
-        activation_message = f"Salut  {user.username}.\n\nVous recevez cet message car vous venez de vous inscrire sur   l'application {app_name}, veuillez activer votre compte  en utilisant le code suivant :\n\n{activation_code}"
->>>>>>> 04837a0c41a7169f6128130fddc92ae0de2742fa
+
         send_email_to("Account activation ", activation_message, [user.email])
 
 
@@ -147,23 +143,3 @@ class UserActivationView(APIView):
             return Response({'message': 'Account activted successfully'})
         else:
             return Response({'message':'Invalid activation code'})
-
-
-<<<<<<< HEAD
-
-=======
-"""class PromoteToVoteAdminView(UpdateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserCreateSerializer
-    lookup_field = 'pk'
-
-    def put(self, request, *args, **kwargs):
-        user = request.user
-        user.is_vote_admin = True
-        user.save()
-        return Response(data={'status': 'User promoted to vote admin'}, status=status.HTTP_202_ACCEPTED)
-
-
-
-"""
->>>>>>> 04837a0c41a7169f6128130fddc92ae0de2742fa
